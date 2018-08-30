@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "安装FileBeat"
+echo "Ubuntu 16.04安装FileBeat"
 
 wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 sudo apt-get -y install apt-transport-https
