@@ -10,5 +10,6 @@ sudo update-rc.d filebeat defaults 95 10
 
 echo "使用以下命令启动FileBeat服务：service filebeat start"
 
+# For usage,See https://github.com/tianyulab/Threat_Hunting_with_ELK/blob/master/Bro/FileBeat101.md
 # 参考：https://www.elastic.co/guide/en/beats/filebeat/current/setup-repositories.html
 
