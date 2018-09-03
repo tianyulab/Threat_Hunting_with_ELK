@@ -8,5 +8,7 @@ echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | sudo tee 
 sudo apt-get update && sudo apt-get -y install filebeat
 sudo update-rc.d filebeat defaults 95 10
 
+echo "使用以下命令启动FileBeat服务：service filebeat start"
+
 # 参考：https://www.elastic.co/guide/en/beats/filebeat/current/setup-repositories.html
 
