@@ -11,7 +11,7 @@ sudo apt-get -y install cmake make gcc g++ flex bison libpcap-dev libssl-dev pyt
 # 下载稳定版源码
 wget https://www.bro.org/downloads/bro-2.5.5.tar.gz 
 wget https://www.bro.org/downloads/bro-2.5.5.tar.gz.asc 
-gpg --recv-keys 0x33f15eaef8cb8019
+gpg --recv-keys --keyserver keys.gnupg.net 0x33f15eaef8cb8019
 gpg -v bro-2.5.5.tar.gz.asc
 
 # 安装Bro
