@@ -99,6 +99,8 @@ ls -lh /var/lib/kafka/
 ## 先安装Logstash
 wget https://github.com/tianyulab/Threat_Hunting_with_ELK/raw/master/Bro/Install_Logstash.sh
 chmod +x Install_Logstash.sh && ./Install_Logstash.sh
+systemctl start logstash
+systemctl enable logstash
 echo "config.reload.automatic: true" | sudo tee -a /etc/logstash/logstash.yml
 echo "config.reload.interval: 3s" | sudo tee -a /etc/logstash/logstash.yml
 echo "请修改10.42.94.92 --> 为Kafka监听IP"
