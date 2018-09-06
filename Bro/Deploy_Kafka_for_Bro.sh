@@ -88,6 +88,7 @@ echo "@load /usr/local/bro/lib/bro/plugins/APACHE_KAFKA/scripts/Apache/Kafka/log
 echo 'redef Kafka::topic_name = "";' >> /usr/local/bro/share/bro/site/local.bro
 echo "redef Kafka::logs_to_send = set(Conn::LOG, HTTP::LOG, DNS::LOG, SMTP::LOG, SSL::LOG, Software::LOG, DHCP::LOG, FTP::LOG, IRC::LOG, Notice::LOG, X509::LOG, SSH::LOG, SNMP::LOG);" >> /usr/local/bro/share/bro/site/local.bro
 echo 'redef Kafka::kafka_conf = table(["metadata.broker.list"] = "BRO所在机器的IP地址:9092");' >> /usr/local/bro/share/bro/site/local.bro
+echo "redef Kafka::tag_json = T;" >> /usr/local/bro/share/bro/site/local.bro
 
 # 修改Bro接口名称
 INAME=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
@@ -110,158 +111,206 @@ echo "config.reload.interval: 3s" | sudo tee -a /etc/logstash/logstash.yml
 echo "请修改10.42.94.92 --> 为Kafka监听IP"
 echo "请修改192.168.8.112 --> 为Elasticsearch监听IP"
 
-cat > /etc/logstash/conf.d/bro-conn.conf << EOF 
+## 创建Logstash配置
+
+cat > /etc/logstash/conf.d/bro-conn.conf << EOF
 input {
 	kafka {
 		topics => ["conn"]
 		group_id => "bro_logstash"
      		bootstrap_servers => "10.42.94.92:9092"
      		codec => json
+     		type => "conn"
      		auto_offset_reset => "earliest"
-   	}
+	}
 }
 
 output {
-	elasticsearch {
-     		hosts => ["192.168.8.112:9200"]
-		index => "bro-conn"
-		document_type => "conn"
-   	}
+	if [type] == "conn" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-conn-%{+YYYY.MM.dd}"
+		}
+	}
 }
 EOF
-cat > /etc/logstash/conf.d/bro-dhcp.conf << EOF 
+#
+cat > /etc/logstash/conf.d/bro-dhcp.conf << EOF
 input {
 	kafka {
 		topics => ["dhcp"]
 		group_id => "bro_logstash"
      		bootstrap_servers => "10.42.94.92:9092"
      		codec => json
+     		type => "dhcp"
      		auto_offset_reset => "earliest"
-   	}
+	}
 }
 
 output {
-	elasticsearch {
-     		hosts => ["192.168.8.112:9200"]
-		index => "bro-dhcp"
-		document_type => "dhcp"
-   	}
+	if [type] == "dhcp" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-dhcp-%{+YYYY.MM.dd}"
+		}
+	}
 }
 EOF
-cat > /etc/logstash/conf.d/bro-dns.conf << EOF 
+#
+cat > /etc/logstash/conf.d/bro-dns.conf << EOF
 input {
 	kafka {
 		topics => ["dns"]
 		group_id => "bro_logstash"
      		bootstrap_servers => "10.42.94.92:9092"
      		codec => json
+     		type => "dns"
      		auto_offset_reset => "earliest"
-   	}
+	}
 }
 
 output {
-	elasticsearch {
-     		hosts => ["192.168.8.112:9200"]
-		index => "bro-dns"
-		document_type => "dns"
-   	}
+	if [type] == "dns" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-dns-%{+YYYY.MM.dd}"
+		}
+	}
 }
 EOF
-cat > /etc/logstash/conf.d/bro-http.conf << EOF 
+#
+cat > /etc/logstash/conf.d/bro-http.conf << EOF
 input {
 	kafka {
 		topics => ["http"]
 		group_id => "bro_logstash"
      		bootstrap_servers => "10.42.94.92:9092"
      		codec => json
+     		type => "http"
      		auto_offset_reset => "earliest"
-   	}
+	}
 }
 
 output {
-	elasticsearch {
-     		hosts => ["192.168.8.112:9200"]
-		index => "bro-http"
-		document_type => "http"
-   	}
+	if [type] == "http" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-http-%{+YYYY.MM.dd}"
+		}
+	}
 }
 EOF
-cat > /etc/logstash/conf.d/bro-notice.conf << EOF 
+#
+cat > /etc/logstash/conf.d/bro-notice.conf << EOF
 input {
 	kafka {
 		topics => ["notice"]
 		group_id => "bro_logstash"
      		bootstrap_servers => "10.42.94.92:9092"
      		codec => json
+     		type => "notice"
      		auto_offset_reset => "earliest"
-   	}
+	}
 }
 
 output {
-	elasticsearch {
-     		hosts => ["192.168.8.112:9200"]
-		index => "bro-notice"
-		document_type => "notice"
-   	}
+	if [type] == "notice" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-notice-%{+YYYY.MM.dd}"
+		}
+	}
 }
 EOF
-cat > /etc/logstash/conf.d/bro-software.conf << EOF 
+#
+cat > /etc/logstash/conf.d/bro-software.conf << EOF
 input {
 	kafka {
 		topics => ["software"]
 		group_id => "bro_logstash"
      		bootstrap_servers => "10.42.94.92:9092"
      		codec => json
+     		type => "software"
      		auto_offset_reset => "earliest"
-   	}
+	}
 }
 
 output {
-	elasticsearch {
-     		hosts => ["192.168.8.112:9200"]
-		index => "bro-software"
-		document_type => "software"
-   	}
+	if [type] == "software" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-software-%{+YYYY.MM.dd}"
+		}
+	}
 }
 EOF
-cat > /etc/logstash/conf.d/bro-ssh.conf << EOF 
+#
+cat > /etc/logstash/conf.d/bro-ssh.conf << EOF
 input {
 	kafka {
 		topics => ["ssh"]
 		group_id => "bro_logstash"
      		bootstrap_servers => "10.42.94.92:9092"
      		codec => json
+     		type => "ssh"
      		auto_offset_reset => "earliest"
-   	}
+	}
 }
 
 output {
-	elasticsearch {
-     		hosts => ["192.168.8.112:9200"]
-		index => "bro-ssh"
-		document_type => "ssh"
-   	}
+	if [type] == "ssh" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-ssh-%{+YYYY.MM.dd}"
+		}
+	}
 }
 EOF
-cat > /etc/logstash/conf.d/bro-ssl.conf << EOF 
+#
+cat > /etc/logstash/conf.d/bro-ssl.conf << EOF
 input {
 	kafka {
 		topics => ["ssl"]
 		group_id => "bro_logstash"
      		bootstrap_servers => "10.42.94.92:9092"
      		codec => json
+     		type => "ssl"
      		auto_offset_reset => "earliest"
-   	}
+	}
 }
 
 output {
-	elasticsearch {
-     		hosts => ["192.168.8.112:9200"]
-		index => "bro-ssl"
-		document_type => "ssl"
-   	}
+	if [type] == "ssl" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-ssl-%{+YYYY.MM.dd}"
+		}
+	}
 }
 EOF
+#
+cat > /etc/logstash/conf.d/bro-x509.conf << EOF
+input {
+	kafka {
+		topics => ["x509"]
+		group_id => "bro_logstash"
+     		bootstrap_servers => "10.42.94.92:9092"
+     		codec => json
+     		type => "x509"
+     		auto_offset_reset => "earliest"
+	}
+}
+
+output {
+	if [type] == "x509" {
+		elasticsearch {
+			hosts => ["192.168.8.112:9200"]
+			index => "bro-x509-%{+YYYY.MM.dd}"
+		}
+	}
+}
+EOF
+
 
 # For testing on Docker container
 # echo "nameserver 9.9.9.9" > /etc/resolv.conf
