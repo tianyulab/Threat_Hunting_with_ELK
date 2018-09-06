@@ -62,6 +62,7 @@ sudo systemctl start kafka
 
 # 2.安装kafka插件（metron-bro-plugin-kafka）
 ## 安装librdkafka
+apt-get -y install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
 curl -L https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz | tar xvz 
 cd librdkafka-0.9.4/ 
 ./configure --enable-sasl 
@@ -88,6 +89,9 @@ echo 'redef Kafka::topic_name = "";' >> /usr/local/bro/share/bro/site/local.bro
 echo "redef Kafka::logs_to_send = set(Conn::LOG, HTTP::LOG, DNS::LOG, SMTP::LOG, SSL::LOG, Software::LOG, DHCP::LOG, FTP::LOG, IRC::LOG, Notice::LOG, X509::LOG, SSH::LOG, SNMP::LOG);" >> /usr/local/bro/share/bro/site/local.bro
 echo 'redef Kafka::kafka_conf = table(["metadata.broker.list"] = "BRO所在机器的IP地址:9092");' >> /usr/local/bro/share/bro/site/local.bro
 
+# 修改Bro接口名称
+INAME=$(ip -o link show | sed -rn '/^[0-9]+: en/{s/.: ([^:]*):.*/\1/p}')
+sed -i "s/eth0/$INAME/g" /usr/local/bro/etc/node.cfg
 /usr/local/bro/bin/broctl deploy
 
 ## 验证
