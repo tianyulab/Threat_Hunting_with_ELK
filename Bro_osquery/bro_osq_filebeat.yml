@@ -1,0 +1,41 @@
+# /etc/filebeat/filebeat.yml
+
+filebeat.inputs:
+- type: log
+  paths:
+    - "/root/bro_logs/conn.log"
+  fields:
+    type: "bro-osq-conn"
+  fields_under_root: true
+
+- type: log
+  paths:
+    - "/root/bro_logs/osq-processes.log"
+  fields:
+    type: "bro-osq-processes"
+  fields_under_root: true
+
+- type: log
+  paths:
+    - "/root/bro_logs/osq-process_events.log"
+  fields:
+    type: "bro-osq-process_events"
+  fields_under_root: true
+
+- type: log
+  paths:
+    - "/root/bro_logs/osq-socket_events.log"
+  fields:
+    type: "bro-osq-socket_events"
+  fields_under_root: true
+
+- type: log
+  paths:
+    - "/root/bro_logs/osq-user_connections.log"
+  fields:
+    type: "bro-osq-user_connections"
+  fields_under_root: true
+
+output.logstash:
+  # The Logstash hosts
+  hosts: ["127.0.0.1:5044"]
