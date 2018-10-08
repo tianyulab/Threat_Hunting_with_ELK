@@ -61,6 +61,11 @@ sudo systemctl enable kafka
 sudo systemctl start kafka
 
 # 2.安装kafka插件（metron-bro-plugin-kafka）
+
+# 更新
+# bro-pkg install apache/metron-bro-plugin-kafka
+# http://mailman.icsi.berkeley.edu/pipermail/bro/2018-October/013654.html
+
 ## 安装librdkafka
 apt-get -y install cmake make gcc g++ flex bison libpcap-dev libssl-dev python-dev swig zlib1g-dev
 curl -L https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz | tar xvz 
