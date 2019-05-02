@@ -1,0 +1,45 @@
+## 4.4 NIDS规则（Snort(9条) 和 Suricata(4条)）
+### Snort (9条)
+# SID:27046 (iodine)
+
+alert udp $EXTERNAL_NET 53 -> $HOME_NET any (msg:"APP-DETECT iodine dns tunneling handshake server ACK"; flow:to_client; byte_test:1,&,0x80,2; content:"|00 01 00 01 00|"; depth:5; offset:4; content:"v"; within:1; distance:4; content:"VACK"; within:200; fast_pattern; metadata:service dns; reference:url,code.kryo.se/iodine/README.html; classtype:policy-violation; sid:27046; rev:3;)
+
+# SID:27540 (OzymanDNS)
+alert udp $HOME_NET any -> any 53 (msg:"APP-DETECT OzymanDNS dns tunneling up attempt"; flow:to_server,no_stream; content:"|01 00 00 01 00 00 00 00 00 00|"; depth:10; offset:2; content:"-0"; distance:6; content:"id-"; within:3; distance:1; fast_pattern; content:"up"; within:8; detection_filter:track by_src, count 18, seconds 1; metadata:impact_flag red, service dns; reference:url,dankaminsky.com/2004/07/29/51/; classtype:policy-violation; sid:27540; rev:4;)
+
+# SID:27541 (OzymanDNS)
+
+alert udp $HOME_NET any -> any 53 (msg:"APP-DETECT OzymanDNS dns tunneling down attempt"; flow:to_server,no_stream; content:"|01 00 00 01 00 00 00 00 00 00|"; depth:10; offset:2; content:"id-"; distance:6; fast_pattern; content:"down"; within:10; distance:2; detection_filter:track by_dst, count 8, seconds 1; metadata:impact_flag red, service dns; reference:url,dankaminsky.com/2004/07/29/51/; classtype:policy-violation; sid:27541; rev:4;)
+
+# SID:34496  (Your-Freedom)
+alert udp $HOME_NET any -> any 53 (msg:"APP-DETECT Your-Freedom DNS tunneling query attempt"; flow:to_server; byte_test:1,!&,0xF8,2; content:"|03|s"; nocase; content:"|03|1yf|02|de|00|"; distance:2; nocase; metadata:service dns; reference:url,your-freedom.net; classtype:misc-activity; sid:34496; rev:1;)
+
+# SID:34497 (Your-Freedom)
+alert udp $EXTERNAL_NET 53 -> any any (msg:"APP-DETECT Your-Freedom DNS tunneling query response attempt"; flow:to_client; byte_test:1,!&,0x01,2; content:"|03|s"; nocase; content:"|03|1yf|02|de|00|"; distance:2; nocase; metadata:service dns; reference:url,your-freedom.net; classtype:misc-activity; sid:34497; rev:1;)
+
+# SID:25983 (INDICATOR-OBFUSCATION)
+alert udp $HOME_NET any -> any 53 (msg:"INDICATOR-OBFUSCATION DNS tunneling attempt"; flow:to_server; byte_test:1,!&,0xF8,2; content:"|00 01 00 00 00 00 00 00 1A|"; depth:9; offset:4; content:"|1A|"; within:1; distance:26; content:"|02|"; within:2; distance:26; metadata:service dns; classtype:policy-violation; sid:25983; rev:2;)
+
+# SID:37891 (INDICATOR-OBFUSCATION)
+alert udp $EXTERNAL_NET 53 -> $HOME_NET any (msg:"INDICATOR-OBFUSCATION DNS tunneling attempt"; flow:to_client,no_stream; content:"|00 01 00 01 00 00 00 00|"; depth:8; offset:4; content:"|00 07 06|(){}[]"; fast_pattern; content:"|00 0A 00 01|"; within:4; distance:-17; detection_filter:track by_src, count 25, seconds 1; metadata:service dns; classtype:policy-violation; sid:37891; rev:2;)
+
+# SID:37892 (INDICATOR-OBFUSCATION)
+alert udp $HOME_NET any -> $EXTERNAL_NET 53 (msg:"INDICATOR-OBFUSCATION DNS tunneling attempt"; flow:to_server,no_stream; content:"|00 01 00 00 00 00 00 00|"; depth:8; offset:4; isdataat:80,relative; content:"|00 0A 00 01|"; within:15; distance:80; fast_pattern; detection_filter:track by_src, count 25, seconds 1; metadata:service dns; classtype:policy-violation; sid:37892; rev:2;)
+
+# SID:47639 (INDICATOR-OBFUSCATION DNS TXT response record tunneling)
+https://blog.talosintelligence.com/2017/03/dnsmessenger.html
+
+
+### Suricata (4条)
+
+sid:2100208 (Tunneling IP over DNS with NSTX)
+alert udp any any -> any 53 (msg:"GPL POLICY MISC Tunneling IP over DNS with NSTX"; byte_test: 1,>,32,12; content: "|00 10 00 01|"; offset: 12; rawbytes; threshold: type threshold, track by_src, count 50, seconds 60; reference:url,nstx.dereference.de/nstx/; reference:url,slashdot.org/articles/00/09/10/2230242.shtml; classtype:policy-violation; sid:2100208; rev:3; metadata:created_at 2010_09_23, updated_at 2010_09_23;)
+
+sid:2024504 (ET TROJAN ISMAgent)
+alert udp $HOME_NET any -> any 53 (msg:"ET TROJAN ISMAgent DNS Tunneling (microsoft-publisher . com)"; content:"|01 00 00 01 00 00 00 00 00 00|"; depth:10; offset:2; content:"|13|microsoft-publisher|03|com|00|"; nocase; distance:0; fast_pattern; threshold:type limit, track by_src, count 1, seconds 60; metadata: former_category TROJAN; reference:md5,a70a08a1e17b820c7dc8ee1247d6bfa2; reference:url,researchcenter.paloaltonetworks.com/2017/07/unit42-oilrig-uses-ismdoor-variant-possibly-linked-greenbug-threat-group/; classtype:trojan-activity; sid:2024504; rev:3; metadata:affected_product Windows_XP_Vista_7_8_10_Server_32_64_Bit, attack_target Client_Endpoint, deployment Perimeter, signature_severity Major, created_at 2017_07_28, malware_family Ismdoor, performance_impact Moderate, updated_at 2017_07_31;)
+
+sid:2025072 (ET TROJAN Patchwork)
+alert dns $HOME_NET any -> any any (msg:"ET TROJAN Patchwork DNS Tunneling (nsn1.winodwsupdates .me)"; dns_query; content:".nsn1.winodwsupdates.me"; isdataat:!1,relative; metadata: former_category TROJAN; reference:url,docs.google.com/document/d/1oYX3uN6KxIX_StzTH0s0yFNNoHDnV8VgmVqU5WoeErc; classtype:trojan-activity; sid:2025072; rev:2; metadata:affected_product Windows_XP_Vista_7_8_10_Server_32_64_Bit, attack_target Client_Endpoint, deployment Perimeter, signature_severity Major, created_at 2017_11_27, malware_family Patchwork, performance_impact Low, updated_at 2017_11_27;)
+
+sid:2025894 (ET TROJAN OilRig)
+alert dns $HOME_NET any -> any 53 (msg:"ET TROJAN OilRig QUADAGENT DNS Tunneling"; content:"|01|"; offset:2; depth:1; content:"|00 01 00 00 00 00 00|"; distance:1; within:7; content:"|04|mail|06|"; distance:0; nocase; pcre:"/^\d{6}/Ri"; content:"|07|cpuproc|03|com|00|"; fast_pattern; distance:0; within:13; nocase; threshold: type limit, count 1, seconds 60, track by_src; metadata: former_category TROJAN; reference:md5,d51c2ffce844d42bab2f2c3131e3dbd4; reference:url,researchcenter.paloaltonetworks.com/2018/07/unit42-oilrig-targets-technology-service-provider-government-agency-quadagent/; classtype:trojan-activity; sid:2025894; rev:2; metadata:affected_product Windows_XP_Vista_7_8_10_Server_32_64_Bit, attack_target Client_Endpoint, deployment Perimeter, signature_severity Major, created_at 2018_07_25, malware_family QuadAgent, performance_impact Low, updated_at 2018_07_25;)
