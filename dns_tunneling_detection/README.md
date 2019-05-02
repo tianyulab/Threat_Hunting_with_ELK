@@ -1,6 +1,6 @@
 #### 威胁猎杀实战（五）：DNS隧道检测 相关检测工具和样本
 
-![](https://imgur.com/C82pNGG)
+![](https://i.imgur.com/C82pNGG.jpg)
 
 ##### 机器学习论文及样本：
 
